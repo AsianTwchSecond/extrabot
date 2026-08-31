@@ -2,10 +2,18 @@ import os
 import discord
 from discord.ext import commands
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
+# =========================
+# CONFIG
+# =========================
 
-OLD_IP = "ExtraCore.shockbyte.xyz"
-SERVER_VERSION = "1.9-1.21.11"
+TOKEN = os.getenv("BOT_TOKEN")
+
+IP_MESSAGE = """ExtraCore.shockbyte.xyz
+1.9-1.21.11"""
+
+# =========================
+# DISCORD SETUP
+# =========================
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -15,52 +23,47 @@ bot = commands.Bot(
     intents=intents
 )
 
+# =========================
+# BOT READY
+# =========================
 
 @bot.event
 async def on_ready():
-    print(f"Logged in as {bot.user}")
-    print("IP replacement system is ONLINE")
+    print("=" * 40)
+    print(f"Bot: {bot.user}")
+    print("IP AUTO-REPLY: ONLINE")
+    print("=" * 40)
 
+# =========================
+# MESSAGE DETECTION
+# =========================
 
 @bot.event
 async def on_message(message):
 
-    # Ignore bots
+    # Ignore messages from bots
     if message.author.bot:
         return
 
-    # Check if message contains the IP
-    if OLD_IP.lower() in message.content.lower():
+    # Convert message to lowercase
+    content = message.content.lower()
 
-        # Replace the IP with IP + version
-        new_content = message.content.replace(
-            OLD_IP,
-            f"{OLD_IP}\n{SERVER_VERSION}"
-        )
+    # Trigger when "ip" is mentioned
+    words = content.split()
 
-        try:
-            # Delete original
-            await message.delete()
+    if "ip" in words:
+        await message.channel.send(IP_MESSAGE)
 
-            # Send replacement
-            await message.channel.send(
-                new_content
-            )
-
-            print(
-                f"Replaced message from {message.author}"
-            )
-
-        except discord.Forbidden:
-            print("Missing Manage Messages permission.")
-
-        except Exception as e:
-            print(f"Error: {e}")
-
+    # Keep commands working
     await bot.process_commands(message)
 
+# =========================
+# START BOT
+# =========================
 
-if not BOT_TOKEN:
-    raise RuntimeError("BOT_TOKEN is missing")
+if not TOKEN:
+    raise RuntimeError(
+        "BOT_TOKEN environment variable is missing!"
+    )
 
-bot.run(BOT_TOKEN)
+bot.run(TOKEN)
